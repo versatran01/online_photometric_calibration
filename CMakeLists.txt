@@ -3,14 +3,17 @@ set(PROJECT_NAME online_photometric_calibration)
 
 project(${PROJECT_NAME})
 
-# Set default build type if not specified otherwise.
-# See https://cmake.org/pipermail/cmake/2012-May/050243.html
+# Set default build type if not specified otherwise. See
+# https://cmake.org/pipermail/cmake/2012-May/050243.html
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-  message(STATUS "Setting build type to '${CMAKE_BUILD_TYPE}' as none was specified.")
+  set(CMAKE_BUILD_TYPE
+      Release
+      CACHE STRING "Choose the type of build." FORCE)
+  message(
+    STATUS "Setting build type to '${CMAKE_BUILD_TYPE}' as none was specified.")
   # Set the possible values of build type for cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-    "MinSizeRel" "RelWithDebInfo")
+                                               "MinSizeRel" "RelWithDebInfo")
 endif()
 
 # We need at least C++11
@@ -22,26 +25,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(NOT CXX_MARCH)
   set(CXX_MARCH native)
 endif()
-SET(CMAKE_CXX_FLAGS_RELEASE "-march=${CXX_MARCH} ${CMAKE_CXX_FLAGS_RELEASE}")
-SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO  "-march=${CXX_MARCH} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CXX_FLAGS_RELEASE "-march=${CXX_MARCH} ${CMAKE_CXX_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
+    "-march=${CXX_MARCH} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 
 # warnings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-sign-compare")
 
 # Required libraries
-if(APPLE)
-  # give the homebrew path as hint, since the formula is keg-only
-  find_package(OpenCV 2.4 REQUIRED HINTS /usr/local/opt/opencv@2)
-else()
-  find_package(OpenCV 2.4 REQUIRED)
-endif()
+find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
 
 # Configure CCache if available (requires cmake 3.4 or newer)
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
   message(STATUS "Found ccache: ${CCACHE_PROGRAM}")
-  set(CMAKE_C_COMPILER_LAUNCHER   ${CCACHE_PROGRAM})
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
   set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif()
 
@@ -55,35 +54,32 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Source files
 set(ONLINE_CALIB_SOURCE_FILES
-  src/Database.cpp
-  src/GainRobustTracker.cpp
-  src/ImageReader.cpp
-  src/JacobianGenerator.cpp
-  src/NonlinearOptimizer.cpp
-  src/OptimizationBlock.cpp
-  src/RapidExposureTimeEstimator.cpp
-  src/Tracker.cpp
-  src/VignetteModel.cpp
-)
+    src/Database.cpp
+    src/GainRobustTracker.cpp
+    src/ImageReader.cpp
+    src/JacobianGenerator.cpp
+    src/NonlinearOptimizer.cpp
+    src/OptimizationBlock.cpp
+    src/RapidExposureTimeEstimator.cpp
+    src/Tracker.cpp
+    src/VignetteModel.cpp)
 
-# add include files to custom target so they show up in IDEs like
-# QtCreator in the project view
+# add include files to custom target so they show up in IDEs like QtCreator in
+# the project view
 file(GLOB_RECURSE _INCLUDE_FILES "src/*.h" "src/*.hpp")
 add_custom_target(_include_files_fix_target SOURCES ${_INCLUDE_FILES})
 
 # main library
 add_library(online_pcalib SHARED ${ONLINE_CALIB_SOURCE_FILES})
-target_link_libraries(online_pcalib
-  ${OpenCV_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(online_pcalib ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 # demo executable for online calibration
 add_executable(online_pcalib_demo src/main.cpp)
-target_link_libraries(online_pcalib_demo
-  online_pcalib)
+target_link_libraries(online_pcalib_demo online_pcalib)
 
 # install rules
-install (TARGETS online_pcalib online_pcalib_demo
+install(
+  TARGETS online_pcalib online_pcalib_demo
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
